@@ -1,0 +1,65 @@
+---
+title: "Homework5"
+author: "Holly Probasco"
+format: pdf
+editor: visual
+---
+
+## Task 1: Conceptual Questions
+
+### 1. What is the purpose of using cross-validation when fitting a random forest model?
+
+-   The purpose is to help choose the best model within the random forest selection process. It shows the error for the models used and also the accuracy of the predictions.
+
+### 2. Describe the bagged tree algorithm.
+
+-   The process involves creating many bootstrap resamples. Each resample creates a new tree. Then, the predictions from each tree are combined in some way to then create the final prediction. For regression trees this is taking the mean, and for classification trees the most common prediction is used.
+
+### 3. What is meant by a general linear model?
+
+-   A general linear model is a linear model that is able to be used on multiple predictors, which includes categorical variables and also interaction terms.
+
+### 4. When fitting a multiple linear regression model, what does adding an interaction term do? That is, what does it allow the model to do differently as compared to when it is not included in the model?
+
+-   Interaction terms allow one predictor to be dependant on another, allowing for more model flexibility. Otherwise, each of the terms in the model are indepedent of one another.
+
+### 5. Why do we split our data into a training and test set?
+
+-   We do this so that after training our model, we can test it on data it hasn't seen. Otherwise, we are training our model just to the specific data we have and have no way of knowing it will be accurate on new data.
+
+## Task 2: Data Prep
+```{r, message=FALSE}
+lapply(c("tidyverse", "tidymodels", "caret", "yardstick"), library, character.only = TRUE)
+```
+
+```{r}
+heartdata <- read_csv("https://www4.stat.ncsu.edu/~online/datasets/heart.csv") %>% as.tibble()
+```
+
+
+### 1. Run and report summary() on your data set.
+```{r}
+summary(heartdata)
+```
+
+
+#### a. What type of variable is Heart Disease?
+Quantitative
+
+#### b. Does this make sense? 
+No, this variable is meant to be a binary Y/N, for whether or not Heart Disease is present. This would be categorical.
+
+### 2. Change HeartDisease to be the appropriate data type, and name it something different. In the same tidyverse pipeline, remove the ST_Slope variable and the original HeartDisease variable. Save your new data set as new_heart.
+```{r}
+new_heart <- heartdata %>% mutate(DiseasePresent = as.factor(HeartDisease), HeartDisease = NULL, ST_Slope = NULL)
+```
+
+## Task 3: EDA
+### 1. 
+Create the appropriate scatterplot to visualize this relationship (age as a function of heart disease and max heart rate)
+```{r}
+ggplot(new_heart, aes(x = MaxHR, y = Age, color = DiseasePresent)) +
+geom_point() +
+geom_smooth(method = "lm", se = FALSE)
+```
+
