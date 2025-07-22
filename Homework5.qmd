@@ -81,8 +81,85 @@ test <- testing(split_data)
 ```
 
 
+## Task 5: OLS and LASSO
+### 1. Fit an interaction model (named ols_mlr) with age as your response, and max heart rate + heart disease as your explanatory variables using the training data set using ordinary least squares regression. 
+```{r}
+ols_mlr <- lm(Age ~ MaxHR + DiseasePresent, data = train)
+
+#Report the summary output.
+summary(ols_mlr)
+```
+
+### 2. Use RMSE to evaluate this model’s predictive performance on new data. Test your model on the testing data set. Calculate the residual mean square error (RMSE) and report it below.
+```{r}
+yardstick::rmse_vec(test$Age, predict(ols_mlr, newdata = test))
+```
+RMSE = 9.01
+
+### 3. See if a model fit using LASSO has better predictive performance than with OLS. Use cross validation to select the best tuning parameter, then evaluate our LASSO model on the testing data set and compare RMSEs.
+
+10 fold cv 
+```{r}
+heart_CV_folds <- vfold_cv(train, 10)
+```
+
+```{r}
+LASSO_recipe <- recipe(Age ~ MaxHR + DiseasePresent, data = train) |>
+  step_dummy(DiseasePresent) |>              
+  step_normalize(all_numeric_predictors()) |>
+  step_interact(~MaxHR:starts_with("DiseasePresent"))
 
 
+LASSO_recipe
+```
 
+### 4.
+set up spec
+```{r}
+LASSO_spec <- linear_reg(penalty = tune(), mixture = 1) |>
+  set_engine("glmnet")
+
+#add to workflow
+LASSO_wkf <- workflow() |>
+  add_recipe(LASSO_recipe) |>
+  add_model(LASSO_spec)
+LASSO_wkf
+```
+
+```{r}
+LASSO_grid <- LASSO_wkf |>
+  tune_grid(resamples = heart_CV_folds,
+         grid = grid_regular(penalty(), levels = 200)) 
+
+#collect the best metric using RMSE
+best_met <- LASSO_grid |> select_best(metric = "rmse")
+best_met
+```
+now we can finalize our workflow by using the lowest RMSE we found to make the best LASSO model
+```{r}
+LASSO_final <- LASSO_wkf |>
+  finalize_workflow(best_met) |>
+  fit(train)
+tidy(LASSO_final)
+```
+
+
+### 5. Without looking at the RMSE calculations, would you expect the RMSE calculations to be roughly the same or different? Justify your answer using output from your LASSO model
+I would expect them to be roughly the same because the tuning parameter we found to be best for LASSO is so small
+
+
+### 6. Compare the RMSE between your OLS and LASSO model and show that the RMSE calculations were roughly the same.
+```{r}
+LASSO_final |>
+  predict(test) |>
+  pull() |>
+  rmse_vec(truth = test$Age)
+```
+Though slightly larger, RMSE is also about 9.01 for LASSO
+
+### 7. Why are the RMSE calculations roughly the same if the coeﬀicients for each model are different?
+Because RMSE is a measure of the quality of predictions made by the model, it isn't taking coefficients into account
+
+## Task 6: Logistic Regression
 
 
