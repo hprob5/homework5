@@ -60,6 +60,29 @@ Create the appropriate scatterplot to visualize this relationship (age as a func
 ```{r}
 ggplot(new_heart, aes(x = MaxHR, y = Age, color = DiseasePresent)) +
 geom_point() +
-geom_smooth(method = "lm", se = FALSE)
+geom_smooth(method = "lm", se = FALSE) + 
+labs(x = "Max Heartrate", y= "Age") +
+scale_color_manual(values = c("0" = "#0072B2", "1" = "#E69F00"))
+#colors taken from the cbPalette (colorblind friendly Palette) used on the cookbook-R site
 ```
+
+### 2.
+Based on visual evidence, do you think an interaction model or an additive model is
+more appropriate? Justify your answer.
+- Looking at the graph, I think that an interaction model is more appropriate, since the lines for DiseasePresent cross. This could indicate that there is a dependence within the variables of the model. We should investigate to see the if impact of MaxHR on Age changes if Disease is Present.
+
+## Task 4: Testing and Training
+### 1. Split your data into a training and test set.
+```{r}
+set.seed(101)
+split_data <- initial_split(new_heart, prop = 0.8)
+train <- training(split_data)
+test <- testing(split_data)
+```
+
+
+
+
+
+
 
